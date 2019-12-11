@@ -1,1 +1,1 @@
-from model.CNN import *
+from src.model.CNN import *

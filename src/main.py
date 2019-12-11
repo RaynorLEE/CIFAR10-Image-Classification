@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
 import torch.optim as optim
-from model import *
+from src.model import *
 
 #   Load and Normalize cifar10 training and test set
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -29,11 +29,11 @@ images, labels = data_iter.next()
 img_show(torchvision.utils.make_grid(images))
 print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
-#   Initialize Convolutional Neural Network
+#   Initialize Convolution Neural Network
 cnn = CNN()
 
 #   Define Loss function
-criterion = nn.CrossEntropyLoss()
+loss_func = nn.CrossEntropyLoss()
 #   Define Optimizer
 print(cnn)
 print(cnn.parameters())
@@ -41,9 +41,46 @@ optimizer = optim.SGD(cnn.parameters(), lr=0.001, momentum=0.9)
 
 #   Train network model
 for epoch in range(2):
+    loss = 0.0
+    mini_batch = 0
     for data in training_set_loader:
-        print(data)
-        break
-    pass
+        mini_batch += 1
+        images, labels = data
+        prediction = cnn(images)
+        loss = loss_func(prediction, labels)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
+        # running_loss += loss.item()
+        # if i % 2000 == 1999:  # print every 2000 mini-batches
+        #     print('[%d, %5d] loss: %.3f' %
+        #           (epoch + 1, i + 1, running_loss / 2000))
+        #     running_loss = 0.0
+print('Finished Training')
+
+dataiter = iter(test_set_loader)
+images, labels = dataiter.next()
+
+# print images
+img_show(torchvision.utils.make_grid(images))
+print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
+
+outputs = cnn(images)
+_, predicted = torch.max(outputs, 1)
+
+print('Predicted: ', ' '.join('%5s' % classes[predicted[j]] for j in range(4)))
+
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in test_set_loader:
+        images, labels = data
+        outputs = cnn(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (
+    100 * correct / total))
 
