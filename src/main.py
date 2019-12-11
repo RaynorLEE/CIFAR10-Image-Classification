@@ -30,7 +30,7 @@ img_show(torchvision.utils.make_grid(images))
 print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
 #   Initialize Convolution Neural Network
-cnn = CNN()
+cnn = LeNet()
 
 #   Define Loss function
 loss_func = nn.CrossEntropyLoss()
@@ -41,7 +41,7 @@ optimizer = optim.SGD(cnn.parameters(), lr=0.001, momentum=0.9)
 
 #   Train network model
 for epoch in range(2):
-    loss = 0.0
+    running_loss = 0.0
     mini_batch = 0
     for data in training_set_loader:
         mini_batch += 1
@@ -52,11 +52,10 @@ for epoch in range(2):
         loss.backward()
         optimizer.step()
 
-        # running_loss += loss.item()
-        # if i % 2000 == 1999:  # print every 2000 mini-batches
-        #     print('[%d, %5d] loss: %.3f' %
-        #           (epoch + 1, i + 1, running_loss / 2000))
-        #     running_loss = 0.0
+        running_loss += loss.item()
+        if mini_batch % 2000 == 1999:  # print every 2000 mini-batches
+            print('[%d, %5d] loss: %.3f' % (epoch + 1, mini_batch, running_loss / 2000))
+            running_loss = 0.0
 print('Finished Training')
 
 dataiter = iter(test_set_loader)
@@ -71,6 +70,7 @@ _, predicted = torch.max(outputs, 1)
 
 print('Predicted: ', ' '.join('%5s' % classes[predicted[j]] for j in range(4)))
 
+#   Testing
 correct = 0
 total = 0
 with torch.no_grad():
@@ -80,7 +80,5 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-
-print('Accuracy of the network on the 10000 test images: %d %%' % (
-    100 * correct / total))
+print('Testing Accuracy of the model: %d %%' % (100 * correct / total))
 
