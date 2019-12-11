@@ -13,11 +13,17 @@ class CNN(nn.Module):
         #   Convolution Layer 2: 14 x 14 x 6 -> 10 x 10 x 16 with 5x5 convolution blocks
         self.conv2 = nn.Conv2d(6, 16, 5)
         #   Full Connection Layer 1: sub-sampling 10 x 10 x 16 -> 5 x 5 x 16, then produce an output with shape = 120
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc1 = nn.Linear(16 * 5 * 5, 168)
         #   Full Connection Layer 2: input = 120, output = 84
-        self.fc2 = nn.Linear(120, 84)
+        self.fc2 = nn.Linear(168, 144)
+        #   Full Connection Layer 2: input = 120, output = 84
+        self.fc3 = nn.Linear(144, 120)
         #   Full Connection Layer 3: input = 84, output = 10
-        self.fc3 = nn.Linear(84, 10)
+        self.fc4 = nn.Linear(120, 84)
+        #   Full Connection Layer 3: input = 84, output = 10
+        self.fc5 = nn.Linear(84, 36)
+        #   Full Connection Layer 3: input = 84, output = 10
+        self.fc6 = nn.Linear(36, 10)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
@@ -25,5 +31,8 @@ class CNN(nn.Module):
         x = x.view(-1, 16 * 5 * 5)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        x = F.relu(self.fc5(x))
+        x = self.fc6(x)
         return x
