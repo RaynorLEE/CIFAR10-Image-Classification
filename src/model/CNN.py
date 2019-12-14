@@ -6,29 +6,30 @@ class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
         #   input image: 32 x 32 x 3 signal
-        #   Convolution Layer 1: 32 x 32 x 3 -> 28 x 28 x 6 with 5x5 convolution blocks
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        #   Pooling: 28 x 28 x 6 -> 14 x 14 x 6 with step length = 2
-        self.pool = nn.MaxPool2d(2, 2)
-        #   Convolution Layer 2: 14 x 14 x 6 -> 10 x 10 x 16 with 5x5 convolution blocks
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        #   Full Connection Layer 1: sub-sampling 10 x 10 x 16 -> 5 x 5 x 16, then produce an output with shape = 120
-        self.fc1 = nn.Linear(16 * 5 * 5, 168)
-        #   Full Connection Layer 2: input = 120, output = 84
-        self.fc2 = nn.Linear(168, 144)
-        #   Full Connection Layer 2: input = 120, output = 84
-        self.fc3 = nn.Linear(144, 120)
-        #   Full Connection Layer 3: input = 84, output = 10
-        self.fc4 = nn.Linear(120, 84)
-        #   Full Connection Layer 3: input = 84, output = 10
-        self.fc5 = nn.Linear(84, 36)
-        #   Full Connection Layer 3: input = 84, output = 10
-        self.fc6 = nn.Linear(36, 10)
+        self.conv1 = nn.Conv2d(3, 16, 3)  # 3 x 32 x 32 -> 16 x 30 x 30
+        self.conv2 = nn.Conv2d(16, 32, 3)  # 16 x 30 x 30 -> 32 x 28 x 28
+        self.conv3 = nn.Conv2d(32, 48, 3)   # 32 x 28 x 28 -> 48 x 26 x 26
+        self.conv4 = nn.Conv2d(48, 64, 3)   # 48 x 26 x 26 -> 64 x 24 x 24
+        self.conv5 = nn.Conv2d(64, 64, 3)   # 64 x 24 x 24 -> 64 x 22 x 22
+        self.conv6 = nn.Conv2d(64, 64, 3)   # 64 x 22 x 22 -> 64 x 20 x 20
+        self.conv7 = nn.Conv2d(64, 64, 3)   # 64 x 20 x 20 -> 64 x 18 x 18
+        self.pool = nn.MaxPool2d(2, 2)      # 64 x 18 x 18 -> 64 x 9 x 9
+        self.fc1 = nn.Linear(64 * 9 * 9, 3072)
+        self.fc2 = nn.Linear(3072, 2048)
+        self.fc3 = nn.Linear(2048, 1024)
+        self.fc4 = nn.Linear(1024, 512)
+        self.fc5 = nn.Linear(512, 128)
+        self.fc6 = nn.Linear(128, 10)
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        x = F.relu(self.conv5(x))
+        x = F.relu(self.conv6(x))
+        x = self.pool(F.relu(self.conv7(x)))
+        x = x.view(-1, 64 * 9 * 9)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
