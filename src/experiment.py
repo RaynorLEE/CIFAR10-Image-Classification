@@ -11,35 +11,36 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 #   Load and Normalize cifar10 training and test set
 train_transform = transforms.Compose([
-    transforms.RandomCrop(32, 2),
+    transforms.RandomCrop(32, 4),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 ])
 test_transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 ])
 training_set = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=train_transform)
-training_set_loader = torch.utils.data.DataLoader(training_set, batch_size=32)
+training_set_loader = torch.utils.data.DataLoader(training_set, batch_size=256)
+print(type(training_set_loader))
 test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=train_transform)
-test_set_loader = torch.utils.data.DataLoader(test_set, batch_size=32)
+test_set_loader = torch.utils.data.DataLoader(test_set, batch_size=256)
 classes = ('plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 #   Initialize Convolution Neural Network
 cnn = ResNet()
-#   cnn = torch.load('./model/ResNet_512_RGB_no_BN')
-#   cnn.eval()
+# cnn = torch.load('./model/ResNet_512_RGB_BN_epo_40')
+# cnn.eval()
 print(cnn)
 print(cnn.parameters())
 
 #   Define Loss function
 loss_func = nn.CrossEntropyLoss()
 #   Define Optimizer
-#   optimizer = optim.SGD(cnn.parameters(), lr=0.0001, momentum=0.9)
-optimizer = optim.Adam(cnn.parameters(), lr=1e-4, weight_decay=0.001)
+#   optimizer = optim.SGD(cnn.parameters(), lr=0.0001, momentum=0.9, weight_decay=5e-4)
+optimizer = optim.Adam(cnn.parameters(), lr=1e-4, weight_decay=1e-4)
 
 if torch.cuda.is_available():
     cnn = cnn.cuda()
@@ -48,7 +49,9 @@ if torch.cuda.is_available():
 plt_x = []
 plt_train_y = []
 plt_test_y = []
-for epoch in range(100):
+best_test_accuracy = 0
+best_accuracy_epo = 0
+for epoch in range(300):
     running_loss = 0.0
     mini_batch = 0
     for data in training_set_loader:
@@ -63,7 +66,7 @@ for epoch in range(100):
         optimizer.step()
 
         running_loss += loss.item()
-        if mini_batch % 200 == 199:  # print every 2000 mini-batches
+        if mini_batch % 195 == 194:
             print('[%d, %5d] loss: %.3f' % (epoch + 1, mini_batch, running_loss / 2000))
             running_loss = 0.0
     print('Epoch = ', epoch + 1)
@@ -80,9 +83,9 @@ for epoch in range(100):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    accuracy = 100 * correct / total
-    plt_train_y.append(accuracy)
-    print('Training Accuracy of the model: %.2f %%' % (100 * correct / total))
+    training_set_accuracy = 100 * correct / total
+    plt_train_y.append(training_set_accuracy)
+    print('Training Accuracy of the model: %.2f %%' % training_set_accuracy)
     # Test Accuracy:
     correct = 0
     total = 0
@@ -95,11 +98,17 @@ for epoch in range(100):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    accuracy = 100 * correct / total
-    plt_test_y.append(accuracy)
+    test_set_accuracy = 100 * correct / total
+    plt_test_y.append(test_set_accuracy)
     print('Test Accuracy of the model: %.2f %%' % (100 * correct / total))
     if epoch % 5 == 4:
-        torch.save(cnn, './model/ResNet_512_RGB_no_BN_epo_{}'.format(epoch+1))
+        torch.save(cnn, './model/ResNet_512_RGB_BN_epo_{}'.format(epoch+1+40))
+    if test_set_accuracy > best_test_accuracy:
+        if test_set_accuracy > 85:
+            torch.save(cnn, './model/ResNet-18_best_accuracy'.format(epoch + 1))
+        best_accuracy_epo = epoch + 1
+        best_test_accuracy = test_set_accuracy
+    print('Best record: epoch = %d, Accuracy = %.2f %%' % (best_accuracy_epo, best_test_accuracy))
 print('Finished Training\n\n')
 
 print(plt_x)
@@ -116,7 +125,7 @@ y_test_normalized = []
 for data in y_test:
     data = test_transform(data)
     y_test_normalized.append(data)
-y_loader = torch.utils.data.DataLoader(y_test_normalized, batch_size=32)
+y_loader = torch.utils.data.DataLoader(y_test_normalized, batch_size=128)
 
 y_result = []
 with torch.no_grad():
@@ -127,10 +136,11 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         for i in range(len(predicted)):
             y_result.append([index+i, int(predicted[i])])
-        index += 32
+        index += 128
 
 with open('./result/test.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Index', 'Category'])
     writer.writerows(y_result)
 
+print("Test report generated.")

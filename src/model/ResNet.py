@@ -7,12 +7,12 @@ class ResBlock(nn.Module):
         super(ResBlock, self).__init__()
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=1),
-            #   nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU()
         )
         self.conv2 = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, stride=1, padding=1),
-            #   nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU()
         )
         self.bypass_path1 = nn.Sequential()
@@ -20,17 +20,17 @@ class ResBlock(nn.Module):
             self.bypass_path1 = nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
                           stride=stride, padding=1),
-                #   nn.BatchNorm2d(out_channels),
+                nn.BatchNorm2d(out_channels),
                 nn.ReLU()
             )
         self.conv3 = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, stride=1, padding=1),
-            #   nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU()
         )
         self.conv4 = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, stride=1, padding=1),
-            #   nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU()
         )
         self.bypass_path2 = nn.Sequential()
@@ -57,15 +57,14 @@ class ResNet(nn.Module):
             nn.BatchNorm2d(64),
             nn.ReLU()
         )
-        #   Residual network for each group
+        #   Residual network for each stage
         self.stage1 = ResBlock(in_channels=64, out_channels=64, kernel_size=3, stride=(1,))
         self.stage2 = ResBlock(in_channels=64, out_channels=128, kernel_size=3, stride=(2,))
         self.stage3 = ResBlock(in_channels=128, out_channels=256, kernel_size=3, stride=(2,))
         self.stage4 = ResBlock(in_channels=256, out_channels=512, kernel_size=3, stride=(2,))
         self.pool = nn.AvgPool2d(4, 4)
         #   Full Connection Layers
-        self.fc1 = nn.Linear(512, 128)
-        self.fc2 = nn.Linear(128, 10)
+        self.fc = nn.Linear(512, 10)
 
     def forward(self, x):
         x = self.init(x)
@@ -75,6 +74,5 @@ class ResNet(nn.Module):
         x = self.stage4(x)
         x = self.pool(x)
         x = x.view(x.size(0), 512 * 1 * 1)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = self.fc(x)
         return x
