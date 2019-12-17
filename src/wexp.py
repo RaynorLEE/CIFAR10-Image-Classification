@@ -116,10 +116,10 @@ for epoch in range(200):
     plt_test_y.append(test_set_accuracy)
     print('Test Accuracy of the model: %.4f %%' % (100 * correct / total))
     if epoch % 5 == 4:
-        torch.save(cnn, './model/ResNet-18_batch-size={}_epo_{}'.format(batch_size, epoch + 1))
+        torch.save(cnn, './model/Wide_ResNet_batch-size={}_epo_{}'.format(batch_size, epoch + 1))
     if test_set_accuracy > best_test_accuracy:
         if test_set_accuracy > 85:
-            torch.save(cnn, './model/ResNet-18_best_accuracy_batch-size={}_epo={}'.format(batch_size, epoch + 1))
+            torch.save(cnn, './model/Wide_ResNet_best_accuracy_batch-size={}_epo={}'.format(batch_size, epoch + 1))
         best_accuracy_epo = epoch + 1
         best_test_accuracy = test_set_accuracy
     print('Best record: epoch = %d, Accuracy = %.4f %%\n' % (best_accuracy_epo, best_test_accuracy))
@@ -139,7 +139,7 @@ plt.show()
 
 #   Generate Test Report
 print('Loading Best Network model...')
-cnn = torch.load('./model/ResNet-18_best_accuracy_batch-size={}_epo={}'.format(batch_size, best_accuracy_epo + 1))
+cnn = torch.load('./model/Wide_ResNet_best_accuracy_batch-size={}_epo={}'.format(batch_size, best_accuracy_epo + 1))
 cnn.eval()
 if torch.cuda.is_available():
     cnn = cnn.cuda()

@@ -58,7 +58,7 @@ class WideResNet(nn.Module):
         out = self.conv4(out)
         out = self.bn(out)
         out = F.relu(out)
-        out = nn.pool(out)
+        out = self.pool(out)
         out = out.view(out.size(0), 640)
         out = self.fc(out)
         return out
