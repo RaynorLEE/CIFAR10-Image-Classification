@@ -11,7 +11,7 @@ class WideResBlock(nn.Module):
             nn.Conv2d(in_channels=in_channels, out_channels=out_channels,
                       kernel_size=3, stride=1, padding=1, bias=True)
         )
-        self.dropout == nn.Dropout(p=dropout_rate)
+        self.dropout = nn.Dropout(p=dropout_rate)
         self.conv2 = nn.Sequential(
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
