@@ -18,17 +18,18 @@ class WideResBlock(nn.Module):
             nn.Conv2d(in_channels=out_channels, out_channels=out_channels,
                       kernel_size=3, stride=stride, padding=1, bias=True)
         )
-        self.shortcut1 = nn.Sequential()
+        self.shortcut = nn.Sequential()
         if stride > 1 or in_channels != out_channels:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=True)
+                nn.Conv2d(in_channels=in_channels, out_channels=out_channels,
+                          kernel_size=1, stride=stride, bias=True)
             )
 
     def forward(self, x):
         out = self.conv1(x)
         out = self.dropout(out)
         out = self.conv2(out)
-        out += self.shortcut1(x)
+        out += self.shortcut(x)
         return out
 
 
