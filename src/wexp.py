@@ -53,7 +53,7 @@ plt_train_y = []
 plt_test_y = []
 best_test_accuracy = 0
 best_accuracy_epo = 0
-for epoch in range(200):
+for epoch in range(300):
     print('Epoch = ', epoch + 1)
     running_loss = 0.0
     mini_batch = 0
