@@ -31,7 +31,7 @@ classes = ('plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 #   Initialize Convolution Neural Network
-cnn = ResNet()
+cnn = WideResNet()
 # cnn = torch.load('./model/ResNet_512_RGB_BN_epo_40')
 # cnn.eval()
 print(cnn)
