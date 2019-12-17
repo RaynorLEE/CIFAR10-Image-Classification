@@ -41,7 +41,7 @@ def construct_layer(in_channels, out_channels, depth, dropout_rate, stride):
 
 class WideResNet(nn.Module):
     def __init__(self):
-        super(WideResNet, self).__init()
+        super(WideResNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
         self.conv2 = construct_layer(in_channels=16, out_channels=160, depth=4, dropout_rate=0.3, stride=1)
         self.conv3 = construct_layer(in_channels=160, out_channels=320, depth=4, dropout_rate=0.3, stride=2)
