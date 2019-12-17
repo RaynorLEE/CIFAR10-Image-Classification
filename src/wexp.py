@@ -40,7 +40,7 @@ print(cnn.parameters())
 #   Define Loss function
 loss_func = nn.CrossEntropyLoss()
 #   Define Optimizer
-optimizer = optim.SGD(cnn.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-3)
+optimizer = optim.SGD(cnn.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
 #   optimizer = optim.Adam(cnn.parameters(), lr=1e-4, weight_decay=1e-4)
 
 if torch.cuda.is_available():
@@ -53,7 +53,7 @@ plt_train_y = []
 plt_test_y = []
 best_test_accuracy = 0
 best_accuracy_epo = 0
-for epoch in range(300):
+for epoch in range(200):
     print('Epoch = ', epoch + 1)
     running_loss = 0.0
     mini_batch = 0
@@ -62,9 +62,11 @@ for epoch in range(300):
     #   Stage 2: epoch 51 - 70: lr = 1e-3, weight_decay = 5e-3
     #   Stage 3: epoch 71 up: lr = 1e-3, weight_decay = 1e-2
     if epoch == 50:
-        optimizer = optim.SGD(cnn.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-3)
-    if epoch == 70:
-        optimizer = optim.SGD(cnn.parameters(), lr=0.0001, momentum=0.9, weight_decay=1e-2)
+        optimizer = optim.SGD(cnn.parameters(), lr=0.02, momentum=0.9, weight_decay=5e-4)
+    if epoch == 80:
+        optimizer = optim.SGD(cnn.parameters(), lr=0.004, momentum=0.9, weight_decay=5e-4)
+    if epoch == 120:
+        optimizer = optim.SGD(cnn.parameters(), lr=0.0008, momentum=0.9, weight_decay=5e-4)
     for data in training_set_loader:
         mini_batch += 1
         images, labels = data

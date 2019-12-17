@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class WideResBlock(nn.module):
+class WideResBlock(nn.Module):
     def __init__(self, in_channels, out_channels, dropout_rate, stride):
         super(WideResBlock, self).__init__()
         self.conv1 = nn.Sequential(
@@ -39,7 +39,7 @@ def construct_layer(in_channels, out_channels, depth, dropout_rate, stride):
     return nn.Sequential(*layers)
 
 
-class WideResNet(nn.module):
+class WideResNet(nn.Module):
     def __init__(self):
         super(WideResNet, self).__init()
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
