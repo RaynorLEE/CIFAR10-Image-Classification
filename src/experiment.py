@@ -21,11 +21,12 @@ test_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 ])
+
 training_set = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=train_transform)
-training_set_loader = torch.utils.data.DataLoader(training_set, batch_size=256)
-print(type(training_set_loader))
 test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=train_transform)
-test_set_loader = torch.utils.data.DataLoader(test_set, batch_size=256)
+batch_size = 128
+training_set_loader = torch.utils.data.DataLoader(training_set, batch_size=batch_size)
+test_set_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
 classes = ('plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -39,8 +40,8 @@ print(cnn.parameters())
 #   Define Loss function
 loss_func = nn.CrossEntropyLoss()
 #   Define Optimizer
-#   optimizer = optim.SGD(cnn.parameters(), lr=0.0001, momentum=0.9, weight_decay=5e-4)
-optimizer = optim.Adam(cnn.parameters(), lr=1e-4, weight_decay=1e-4)
+optimizer = optim.SGD(cnn.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-3)
+#   optimizer = optim.Adam(cnn.parameters(), lr=1e-4, weight_decay=1e-4)
 
 if torch.cuda.is_available():
     cnn = cnn.cuda()
@@ -51,9 +52,18 @@ plt_train_y = []
 plt_test_y = []
 best_test_accuracy = 0
 best_accuracy_epo = 0
-for epoch in range(300):
+for epoch in range(200):
+    print('Epoch = ', epoch + 1)
     running_loss = 0.0
     mini_batch = 0
+    #   Increase learning rate and weight_decay correspondingly
+    #   Stage 1: epoch 1 - 50: lr = 1e-2, weight_decay = 5e-3
+    #   Stage 2: epoch 51 - 70: lr = 1e-3, weight_decay = 5e-3
+    #   Stage 3: epoch 71 up: lr = 1e-3, weight_decay = 1e-2
+    if epoch == 50:
+        optimizer = optim.SGD(cnn.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-3)
+    if epoch == 70:
+        optimizer = optim.SGD(cnn.parameters(), lr=0.0001, momentum=0.9, weight_decay=1e-2)
     for data in training_set_loader:
         mini_batch += 1
         images, labels = data
@@ -64,12 +74,10 @@ for epoch in range(300):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
         running_loss += loss.item()
-        if mini_batch % 195 == 194:
-            print('[%d, %5d] loss: %.3f' % (epoch + 1, mini_batch, running_loss / 2000))
+        if mini_batch % 180 == 179:
+            print('[%d, %5d] loss: %.5f' % (epoch + 1, mini_batch + 1, running_loss / 90))
             running_loss = 0.0
-    print('Epoch = ', epoch + 1)
     plt_x.append(epoch + 1)
     # Train accuracy:
     correct = 0
@@ -102,13 +110,13 @@ for epoch in range(300):
     plt_test_y.append(test_set_accuracy)
     print('Test Accuracy of the model: %.2f %%' % (100 * correct / total))
     if epoch % 5 == 4:
-        torch.save(cnn, './model/ResNet_512_RGB_BN_epo_{}'.format(epoch+1+40))
+        torch.save(cnn, './model/ResNet-18_RGB_batch-size={}_epo_{}'.format(batch_size, epoch + 1))
     if test_set_accuracy > best_test_accuracy:
         if test_set_accuracy > 85:
-            torch.save(cnn, './model/ResNet-18_best_accuracy'.format(epoch + 1))
+            torch.save(cnn, './model/ResNet-18_best_accuracy')
         best_accuracy_epo = epoch + 1
         best_test_accuracy = test_set_accuracy
-    print('Best record: epoch = %d, Accuracy = %.2f %%' % (best_accuracy_epo, best_test_accuracy))
+    print('Best record: epoch = %d, Accuracy = %.2f %%\n' % (best_accuracy_epo, best_test_accuracy))
 print('Finished Training\n\n')
 
 print(plt_x)
@@ -116,10 +124,20 @@ print(plt_train_y)
 print(plt_test_y)
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
-plt.plot(plt_x, plt_train_y)
-plt.plot(plt_x, plt_test_y)
+plt.plot(plt_x, plt_train_y, label='Training Accuracy')
+plt.plot(plt_x, plt_test_y, label='Testing Accuracy')
+handles, labels = plt.get_legend_handles_labels()
+plt.legend(handles, labels)
+plt.title('Training and Test Accuracy per Epoch')
 plt.show()
 
+#   Generate Test Report
+print('Loading Best Network model...')
+cnn = torch.load('./model/ResNet-18_best_accuracy')
+cnn.eval()
+if torch.cuda.is_available():
+    cnn = cnn.cuda()
+print('Loading test set...')
 y_test = np.load("./test/y_test.npy")
 y_test_normalized = []
 for data in y_test:
@@ -127,6 +145,7 @@ for data in y_test:
     y_test_normalized.append(data)
 y_loader = torch.utils.data.DataLoader(y_test_normalized, batch_size=128)
 
+print('Start testing process...')
 y_result = []
 with torch.no_grad():
     index = 0
@@ -135,10 +154,10 @@ with torch.no_grad():
         outputs = cnn(data)
         _, predicted = torch.max(outputs.data, 1)
         for i in range(len(predicted)):
-            y_result.append([index+i, int(predicted[i])])
+            y_result.append([index + i, int(predicted[i])])
         index += 128
 
-with open('./result/test.csv', 'w', newline='') as file:
+with open('./result/y_test_result.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Index', 'Category'])
     writer.writerows(y_result)

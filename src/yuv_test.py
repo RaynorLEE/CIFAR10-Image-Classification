@@ -12,7 +12,8 @@ from src.model import *
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 #   Load and Normalize cifar10 training and test set
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                                                            (0.2023, 0.1994, 0.2010))])
 training_set = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
 training_set_loader = torch.utils.data.DataLoader(training_set, batch_size=4)
 test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True)

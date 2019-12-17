@@ -18,7 +18,7 @@ y_test_normalized = []
 for data in y_test:
     data = test_transform(data)
     y_test_normalized.append(data)
-y_loader = torch.utils.data.DataLoader(y_test_normalized, batch_size=256)
+y_loader = torch.utils.data.DataLoader(y_test_normalized, batch_size=6000)
 
 print('Loading network model...')
 cnn = torch.load('./model/ResNet-18_best_accuracy')
@@ -29,10 +29,9 @@ if torch.cuda.is_available():
 
 print('Start testing...')
 y_result = []
-batch_size = 256
+batch_size = 6000
 with torch.no_grad():
     index = 0
-    print('Current progress: %.3f%%' % (100 * index * batch_size / 12000))
     for data in y_loader:
         data = data.to(device)
         outputs = cnn(data)
