@@ -13,7 +13,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 train_transform = transforms.Compose([
     transforms.RandomCrop(32, 4),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomVerticalFlip(),
+    #   transforms.RandomVerticalFlip(),
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 ])
@@ -32,8 +32,8 @@ classes = ('plane', 'car', 'bird', 'cat',
 
 #   Initialize Convolution Neural Network
 cnn = WideResNet()
-# cnn = torch.load('./model/ResNet_512_RGB_BN_epo_40')
-# cnn.eval()
+#   cnn = torch.load('./model/Wide_ResNet_best_accuracy')
+#   cnn.eval()
 print(cnn)
 print(cnn.parameters())
 
@@ -67,6 +67,8 @@ for epoch in range(200):
         optimizer = optim.SGD(cnn.parameters(), lr=0.004, momentum=0.9, weight_decay=5e-4)
     if epoch == 120:
         optimizer = optim.SGD(cnn.parameters(), lr=0.0008, momentum=0.9, weight_decay=5e-4)
+    if epoch == 150:
+        optimizer = optim.SGD(cnn.parameters(), lr=0.00016, momentum=0.9, weight_decay=1e-3)
     for data in training_set_loader:
         mini_batch += 1
         images, labels = data
