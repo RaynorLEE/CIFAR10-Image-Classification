@@ -1,8 +1,6 @@
 import torch
-import torchvision
 import torchvision.transforms as transforms
 import numpy as np
-import torch.optim as optim
 import csv
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -18,10 +16,10 @@ y_test_normalized = []
 for data in y_test:
     data = test_transform(data)
     y_test_normalized.append(data)
-y_loader = torch.utils.data.DataLoader(y_test_normalized, batch_size=1024)
+y_loader = torch.utils.data.DataLoader(y_test_normalized, batch_size=128)
 
 print('Loading network model...')
-cnn = torch.load('./model/Wide_ResNet_best_accuracy_batch-size=128_epo=142')
+cnn = torch.load('./model/classification_resnet_model')
 cnn.eval()
 
 if torch.cuda.is_available():
@@ -29,7 +27,7 @@ if torch.cuda.is_available():
 
 print('Start testing...')
 y_result = []
-batch_size = 1024
+batch_size = 128
 with torch.no_grad():
     index = 0
     for data in y_loader:
